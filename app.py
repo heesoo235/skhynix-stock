@@ -93,22 +93,6 @@ def view_post(post_id):
 
     return render_template('view.html', post=post, comments=comments, liked=liked)
 
-
-    cursor.execute('SELECT * FROM board.comments WHERE post_id = %s ORDER BY created_at', (post_id,))
-    comments = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    user_ip = request.remote_addr
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) FROM board.likes WHERE post_id = %s AND user_ip = %s', (post_id, user_ip))
-    liked = cursor.fetchone()[0] > 0
-    cursor.close()
-    conn.close()
-
-    return render_template('view.html', post=post, comments=comments, liked=liked)
-
 @app.route('/edit/<int:post_id>', methods=['GET'])
 def edit_form(post_id):
     conn = get_db_connection()
@@ -188,5 +172,27 @@ def like_post(post_id):
     flash(message)
     return redirect(url_for('view_post', post_id=post_id))
 
+@app.route('/stock_predict', methods=['GET', 'POST'])
+def stock_predict():
+    prediction = None
+    sentiment = None
+    if request.method == 'POST':
+        # 예시: 게시판 오늘 글을 다 불러와서 감성분석 후 예측
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=DictCursor)
+        from datetime import date
+        today = date.today()
+        cursor.execute("SELECT content FROM board.posts WHERE created_at::date = %s", (today,))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        combined_text = " ".join([row['content'] for row in rows])
+        # 간단 감성 분석/예측 예시 (여기서 실제 ML 모델 연결 가능)
+        sentiment = "positive" if "좋다" in combined_text else "neutral"
+        prediction = "내일 주가가 상승할 가능성이 높음!" if sentiment == "positive" else "변동성 주의!"
+    return render_template('stock_predict.html', prediction=prediction, sentiment=sentiment)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+

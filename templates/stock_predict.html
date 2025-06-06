@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}주가 예측{% endblock %}
+{% block content %}
+<div class="mt-5 p-4 bg-light rounded shadow-sm">
+    <h2 class="mb-4">AI 주가 예측</h2>
+    <form method="post" class="mb-3">
+        <button type="submit" class="btn btn-primary">오늘 게시글 기반 예측 실행</button>
+    </form>
+    {% if prediction %}
+        <div class="alert alert-success mt-4">
+            <strong>감성 분석 결과:</strong> {{ sentiment }}<br>
+            <strong>주가 예측:</strong> {{ prediction }}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
