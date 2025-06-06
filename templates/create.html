@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}글쓰기{% endblock %}
+{% block content %}
+<h2>글쓰기</h2>
+<form action="{{ url_for('create_post') }}" method="POST">
+    <div class="mb-3">
+        <label class="form-label">제목</label>
+        <input type="text" name="title" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">작성자</label>
+        <input type="text" name="author" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">내용</label>
+        <textarea name="content" class="form-control" rows="8" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">등록</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">취소</a>
+</form>
+{% endblock %}
