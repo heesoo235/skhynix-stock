@@ -34,6 +34,10 @@ def get_db_connection():
 def landing():
     return render_template('landing.html')
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/create/', methods=['GET'])
 def create_form():
     return render_template('create.html')
