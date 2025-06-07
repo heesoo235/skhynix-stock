@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import psycopg2
 from psycopg2.extras import DictCursor
 import os
 from datetime import datetime
 from dotenv import load_dotenv
 from markupsafe import Markup
+import yfinance as yf
 
 load_dotenv()
 app = Flask(__name__)
@@ -201,6 +202,27 @@ def index():
     cursor.close()
     conn.close()
     return render_template('index.html', posts=posts)
+
+@app.route('/stock')
+def stock_dashboard():
+    return render_template('stock_dashboard.html')  # 아래 3번의 html 파일
+
+@app.route('/api/stock', methods=['GET'])
+def get_stock_data():
+    ticker = request.args.get('ticker', 'AAPL')
+    days = request.args.get('days', '5')
+    try:
+        data = yf.Ticker(ticker)
+        hist = data.history(period=f"{days}d")
+        if hist.empty:
+            return jsonify({"error": f"No data found for ticker {ticker}"}), 404
+
+        # 필요한 컬럼만 추출
+        result = hist[['Open', 'Close', 'High', 'Low', 'Volume']].reset_index()
+        return jsonify(result.to_dict(orient='records'))
+    except Exception as e:
+        print("❌ 오류 발생:", e)
+        return jsonify({"error": "500 INTERNAL SERVER ERROR", "details": str(e)}), 500
 
 
 if __name__ == '__main__':

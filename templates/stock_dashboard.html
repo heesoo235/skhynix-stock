@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>주가 데이터 대시보드</title>
+    <!-- Bootstrap + Pretendard 폰트 + Chart.js + Axios -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', Arial, sans-serif;
+            background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+        .dashboard-container {
+            max-width: 960px;
+            margin: 48px auto 36px auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 6px 36px #8a7aec22;
+            padding: 44px 28px 32px 28px;
+        }
+        .dashboard-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #544ed7;
+            text-align: center;
+            letter-spacing: -1px;
+            margin-bottom: 1.3rem;
+        }
+        .dashboard-sub {
+            text-align: center;
+            color: #7676a1;
+            margin-bottom: 1.7rem;
+            font-size: 1.04rem;
+        }
+        .dashboard-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .dashboard-inputs label {
+            margin-right: 4px;
+            margin-left: 8px;
+        }
+        .dashboard-btn {
+            background: linear-gradient(90deg, #4953e6 0%, #7d8bfc 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.08rem;
+            padding: 8px 22px;
+            margin-left: 12px;
+            box-shadow: 0 2px 10px #a8b1fb33;
+            transition: background 0.22s;
+        }
+        .dashboard-btn:hover {
+            background: linear-gradient(90deg, #4a67ff 10%, #4953e6 100%);
+        }
+        .back-btn {
+            margin-left: 12px;
+        }
+        .dashboard-section {
+            background: #f7f8fd;
+            border-radius: 12px;
+            padding: 18px 18px 8px 18px;
+            margin-top: 2.6rem;
+            margin-bottom: 1.7rem;
+            box-shadow: 0 1px 10px #d3dcff1a;
+        }
+        .dashboard-section h2 {
+            font-size: 1.2rem;
+            color: #5d55d7;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        #stockChart {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 14px #b8b8ee18;
+            margin: auto;
+            display: block;
+        }
+        table {
+            margin-top: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 1px 7px #e3e3f811;
+        }
+        th, td {
+            padding: 9px 10px;
+            text-align: center;
+        }
+        th {
+            background: #ecebfd;
+            color: #6b64c6;
+            font-weight: 500;
+            border-bottom: 1.5px solid #dbdbfa;
+        }
+        tr {
+            border-bottom: 1px solid #e9eafd;
+        }
+        tr:last-child {
+            border-bottom: none;
+        }
+        @media (max-width: 750px) {
+            .dashboard-container { padding: 20px 5px; }
+            .dashboard-section { padding: 10px 4px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container shadow fade-in">
+        <div class="dashboard-title">📈 주가 데이터 대시보드</div>
+        <div class="dashboard-sub">
+            실시간 미국/글로벌 주식 티커로 <b>종가, 이동평균선, 요약, 상세 테이블</b>을 한 번에 조회할 수 있습니다.<br>
+            (예: <span class="text-primary">AAPL, GOOGL, MSFT, TSLA</span> 등 콤마로 여러 종목)
+        </div>
+        <form class="dashboard-inputs" onsubmit="fetchMultipleStocks(); return false;">
+            <label for="tickers">티커(여러개):</label>
+            <input type="text" id="tickers" value="AAPL,GOOGL" class="form-control" style="width:140px;">
+            <label for="days">기간:</label>
+            <select id="days" class="form-select" style="width:80px;display:inline-block;">
+                <option value="5">5일</option>
+                <option value="10">10일</option>
+                <option value="30">30일</option>
+            </select>
+            <button type="submit" class="dashboard-btn">조회</button>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary back-btn">게시판으로</a>
+        </form>
+        
+        <div class="dashboard-section">
+            <h2>📊 종가 및 5일 이동평균선 그래프</h2>
+            <canvas id="stockChart" width="800" height="360"></canvas>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>🧠 종목별 요약</h2>
+            <div id="summaryBox" class="text-secondary" style="font-size:1.08rem;"></div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>📋 데이터 상세 테이블</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>티커</th>
+                            <th>날짜</th>
+                            <th>시가</th>
+                            <th>종가</th>
+                            <th>고가</th>
+                            <th>저가</th>
+                            <th>거래량</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chart;
+
+        async function fetchMultipleStocks() {
+            const tickerInput = document.getElementById("tickers").value;
+            const tickers = tickerInput.split(',').map(t => t.trim().toUpperCase());
+            const days = document.getElementById("days").value;
+
+            const datasets = [];
+            const labels = [];
+            const summaryLines = [];
+            const tbody = document.getElementById("dataTableBody");
+            tbody.innerHTML = "";
+
+            for (const [i, ticker] of tickers.entries()) {
+                try {
+                    const res = await axios.get(`/api/stock?ticker=${ticker}&days=${days}`);
+                    const data = res.data;
+
+                    if (i === 0) {
+                        labels.push(...data.map(row => new Date(row.Date).toLocaleDateString()));
+                    }
+
+                    const closePrices = data.map(row => row.Close);
+                    const movingAverage = calculateMovingAverage(closePrices);
+
+                    datasets.push({
+                        label: `${ticker} 종가`,
+                        data: closePrices,
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3,
+                        borderColor: getRandomColor()
+                    });
+
+                    datasets.push({
+                        label: `${ticker} 5일 이동평균`,
+                        data: movingAverage,
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.3,
+                        borderColor: getRandomColor()
+                    });
+
+                    const avg = (closePrices.reduce((a, b) => a + b, 0) / closePrices.length).toFixed(2);
+                    const max = Math.max(...closePrices).toFixed(2);
+                    const min = Math.min(...closePrices).toFixed(2);
+
+                    summaryLines.push(`<b>${ticker}</b>: 평균종가 <b>$${avg}</b>, 최고 <span class="text-danger">$${max}</span>, 최저 <span class="text-primary">$${min}</span>`);
+
+                    data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${ticker}</td>
+                            <td>${new Date(row.Date).toLocaleDateString()}</td>
+                            <td>${row.Open.toFixed(2)}</td>
+                            <td>${row.Close.toFixed(2)}</td>
+                            <td>${row.High.toFixed(2)}</td>
+                            <td>${row.Low.toFixed(2)}</td>
+                            <td>${row.Volume.toLocaleString()}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                } catch (err) {
+                    alert(`Failed to load data for ${ticker}`);
+                }
+            }
+
+            if (chart) chart.destroy();
+            const ctx = document.getElementById("stockChart").getContext("2d");
+            chart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+
+            document.getElementById("summaryBox").innerHTML = summaryLines.map(line => `<p>${line}</p>`).join('');
+        }
+
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 180 + 50);
+            const g = Math.floor(Math.random() * 140 + 70);
+            const b = Math.floor(Math.random() * 140 + 70);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function calculateMovingAverage(data, period = 5) {
+            const ma = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    ma.push(null);
+                } else {
+                    const avg = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0) / period;
+                    ma.push(parseFloat(avg.toFixed(2)));
+                }
+            }
+            return ma;
+        }
+    </script>
+</body>
+</html>
