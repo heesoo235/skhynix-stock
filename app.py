@@ -31,14 +31,8 @@ def get_db_connection():
     return conn
 
 @app.route('/')
-def index():
-    conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=DictCursor)
-    cursor.execute("SELECT id, title, author, created_at, view_count, like_count FROM board.posts ORDER BY created_at DESC")
-    posts = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('index.html', posts=posts)
+def landing():
+    return render_template('landing.html')
 
 @app.route('/create/', methods=['GET'])
 def create_form():
@@ -192,6 +186,17 @@ def stock_predict():
         sentiment = "positive" if "좋다" in combined_text else "neutral"
         prediction = "내일 주가가 상승할 가능성이 높음!" if sentiment == "positive" else "변동성 주의!"
     return render_template('stock_predict.html', prediction=prediction, sentiment=sentiment)
+
+@app.route('/board')
+def index():
+    # 기존 index() 함수 내용 (게시글 목록)
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=DictCursor)
+    cursor.execute("SELECT id, title, author, created_at, view_count, like_count FROM board.posts ORDER BY created_at DESC")
+    posts = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('index.html', posts=posts)
 
 
 if __name__ == '__main__':
