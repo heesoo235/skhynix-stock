@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 {% block title %}게시글 보기{% endblock %}
 {% block content %}
-<div class="mb-3">
-    <h2>{{ post.title }}</h2>
-    <p>
-        <strong>{{ post.author }}</strong> |
-        {{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else '' }} |
-        조회수: {{ post.view_count }} |
-        좋아요: {{ post.like_count }}
-    </p>
-    <div class="border p-3">{{ post.content | nl2br }}</div>
-    <div class="mt-3">
+<div class="shadow-card p-4 mb-4" style="max-width:750px; margin:auto;">
+    <h3>{{ post.title }}</h3>
+    <div class="text-muted mb-2">
+        <strong>{{ post.author }}</strong> | {{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else '' }}
+        <span class="mx-2">|</span>
+        <span class="text-secondary">조회수 <b>{{ post.view_count }}</b></span>
+        <span class="mx-2">|</span>
+        <span class="text-danger"><i class="bi bi-heart-fill"></i> {{ post.like_count }}</span>
+    </div>
+    <hr>
+    <div class="mb-4" style="min-height:110px;">{{ post.content | nl2br }}</div>
+    <div>
         <a href="{{ url_for('edit_form', post_id=post.id) }}" class="btn btn-warning btn-sm">수정</a>
         <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" class="d-inline"
               onsubmit="return confirm('정말 삭제하시겠습니까?');">
@@ -18,35 +20,38 @@
         </form>
     </div>
 </div>
-<hr>
-<h5>댓글</h5>
-<form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST" class="mb-3">
-    <div class="mb-2">
-        <input type="text" name="author" placeholder="작성자" class="form-control" required>
-    </div>
-    <div class="mb-2">
-        <input type="text" name="content" placeholder="댓글 내용" class="form-control" required>
-    </div>
-    <button type="submit" class="btn btn-outline-primary btn-sm">댓글 등록</button>
-</form>
-<ul class="list-group">
-    {% for comment in comments %}
-    <li class="list-group-item">
-        <strong>{{ comment.author }}</strong>
-        <small class="text-muted">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') if comment.created_at else '' }}</small>
-        <div>{{ comment.content }}</div>
-    </li>
-    {% else %}
-    <li class="list-group-item text-muted">댓글이 없습니다.</li>
-    {% endfor %}
-</ul>
-<hr>
-<form action="{{ url_for('like_post', post_id=post.id) }}" method="POST" class="d-inline">
-    {% if liked %}
-    <button type="submit" class="btn btn-secondary btn-sm">좋아요 취소</button>
-    {% else %}
-    <button type="submit" class="btn btn-primary btn-sm">좋아요</button>
-    {% endif %}
-</form>
-<a href="{{ url_for('index') }}" class="btn btn-link btn-sm">목록으로</a>
+<div class="shadow-card p-4 mb-4" style="max-width:750px; margin:auto;">
+    <h5 class="mb-3">💬 댓글</h5>
+    <form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST" class="mb-3 row g-2">
+        <div class="col-sm-4">
+            <input type="text" name="author" placeholder="작성자" class="form-control" required>
+        </div>
+        <div class="col-sm-6">
+            <input type="text" name="content" placeholder="댓글 내용" class="form-control" required>
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">등록</button>
+        </div>
+    </form>
+    <ul class="list-group">
+        {% for comment in comments %}
+        <li class="list-group-item">
+            <b>{{ comment.author }}</b>
+            <span class="text-muted small ms-2">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') if comment.created_at else '' }}</span>
+            <div>{{ comment.content }}</div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">댓글이 없습니다.</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <form action="{{ url_for('like_post', post_id=post.id) }}" method="POST" class="d-inline">
+        {% if liked %}
+        <button type="submit" class="btn btn-secondary btn-sm">좋아요 취소</button>
+        {% else %}
+        <button type="submit" class="btn btn-primary btn-sm">좋아요</button>
+        {% endif %}
+    </form>
+    <a href="{{ url_for('index') }}" class="btn btn-link btn-sm">목록으로</a>
+</div>
 {% endblock %}

@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 {% block title %}글쓰기{% endblock %}
 {% block content %}
-<h2>글쓰기</h2>
-<form action="{{ url_for('create_post') }}" method="POST">
-    <div class="mb-3">
-        <label class="form-label">제목</label>
-        <input type="text" name="title" class="form-control" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">작성자</label>
-        <input type="text" name="author" class="form-control" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">내용</label>
-        <textarea name="content" class="form-control" rows="8" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-success">등록</button>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">취소</a>
-</form>
+<div class="shadow-card p-4" style="max-width:600px; margin:auto;">
+    <h2 class="mb-4">📝 글쓰기</h2>
+    <form action="{{ url_for('create_post') }}" method="POST">
+        <div class="mb-3">
+            <label class="form-label">제목 <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control" required placeholder="제목을 입력하세요">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">작성자 <span class="text-danger">*</span></label>
+            <input type="text" name="author" class="form-control" required placeholder="작성자 이름">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">내용 <span class="text-danger">*</span></label>
+            <textarea name="content" class="form-control" rows="8" required placeholder="내용을 입력하세요"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success fw-bold">등록</button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">취소</a>
+    </form>
+</div>
 {% endblock %}

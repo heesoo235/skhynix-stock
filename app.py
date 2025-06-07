@@ -24,7 +24,8 @@ def get_db_connection():
         port=os.getenv('DB_PORT'),
         database=os.getenv('DB_NAME'),
         user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD')
+        password=os.getenv('DB_PASSWORD'),
+        sslmode='require'
     )
     conn.autocommit = True
     return conn
@@ -193,6 +194,7 @@ def stock_predict():
     return render_template('stock_predict.html', prediction=prediction, sentiment=sentiment)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.debug = True
+    app.run()
 

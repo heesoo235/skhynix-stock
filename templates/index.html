@@ -1,35 +1,40 @@
 {% extends "base.html" %}
 {% block title %}게시글 목록{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-end mb-3">
-    <a href="{{ url_for('create_form') }}" class="btn btn-primary">글쓰기</a>
+<div class="shadow-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-card-list"></i> 전체 게시글</h3>
+        <a href="{{ url_for('create_form') }}" class="btn btn-primary">➕ 새 글 작성</a>
+    </div>
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>작성일</th>
+                <th>조회수</th>
+                <th>좋아요</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('view_post', post_id=post.id) }}" class="fw-semibold">
+                        <i class="bi bi-chat-text text-secondary"></i> {{ post.title }}
+                    </a>
+                </td>
+                <td>{{ post.author }}</td>
+                <td>{{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else '' }}</td>
+                <td><span class="badge bg-secondary">{{ post.view_count }}</span></td>
+                <td>
+                    <span class="text-danger fw-bold"><i class="bi bi-heart-fill"></i> {{ post.like_count }}</span>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted">게시글이 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성일</th>
-            <th>조회수</th>
-            <th>좋아요</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for post in posts %}
-        <tr>
-            <td>
-                <a href="{{ url_for('view_post', post_id=post.id) }}">
-                    {{ post.title }}
-                </a>
-            </td>
-            <td>{{ post.author }}</td>
-            <td>{{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else '' }}</td>
-            <td>{{ post.view_count }}</td>
-            <td>{{ post.like_count }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center">게시글이 없습니다.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
 {% endblock %}
