@@ -40,6 +40,23 @@
         .fade-in {
             animation: fadein 0.6s;
         }
+        .btn-gradient-info {
+    background: linear-gradient(90deg, #4953e6 0%, #7d8bfc 100%) !important;
+    color: #fff !important;
+    border-radius: 32px !important;
+    font-weight: bold;
+    font-size: 1.08rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 12px #aaa2ff1a, 0 1px 2px #7d8bfc30 !important;
+    border: none !important;
+    transition: transform 0.12s, box-shadow 0.12s;
+}
+.btn-gradient-info:hover {
+    background: linear-gradient(90deg, #2b34c7 0%, #4a67ff 100%) !important;
+    color: #fff !important;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 18px #aeb6ff42, 0 2px 4px #7d8bfc60 !important;
+}
         @keyframes fadein {
             0% { opacity: 0; transform: translateY(-15px);}
             100% { opacity: 1; transform: translateY(0);}
@@ -52,7 +69,10 @@
             <a href="{{ url_for('index') }}" class="text-white text-decoration-none">📊 AI 주가예측 게시판</a>
         </div>
         <div>
-            <a href="{{ url_for('stock_dashboard') }}" class="btn btn-outline-primary">주가정보</a>
+            <a href="{{ url_for('stock_dashboard') }}" 
+       class="btn btn-gradient-info me-2 px-4 fw-bold shadow fade-in">
+       📈 주가정보
+    </a>
             <a href="{{ url_for('stock_predict') }}" class="btn btn-warning me-2 fw-bold shadow-sm">주가예측</a>
             <a href="{{ url_for('create_form') }}" class="btn btn-light fw-bold">글쓰기</a>
         </div>

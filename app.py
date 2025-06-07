@@ -5,11 +5,51 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 from markupsafe import Markup
+import pandas as pd
 import yfinance as yf
 
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+def load_name_to_ticker_map(csv_path='kor_stock_list.csv'):
+    df = pd.read_csv(csv_path)
+    name2ticker = dict(zip(df['name'], df['yf_ticker']))
+    ticker2name = dict(zip(df['yf_ticker'], df['name']))
+    return name2ticker, ticker2name
+
+NAME_TO_TICKER, TICKER_TO_NAME = load_name_to_ticker_map('kor_stock_list.csv')
+
+def parse_input_to_ticker_list(user_input):
+    tickers = []
+    for n in [s.strip() for s in user_input.split(',')]:
+        if n in NAME_TO_TICKER:
+            tickers.append(NAME_TO_TICKER[n])
+        else:
+            tickers.append(n)
+    return tickers
+
+@app.route('/api/stock_multi', methods=['GET'])
+def get_stock_multi():
+    user_input = request.args.get('tickers', '삼성전자,LG에너지솔루션')
+    days = request.args.get('days', '5')
+    ticker_list = parse_input_to_ticker_list(user_input)
+    result = []
+    for ticker in ticker_list:
+        try:
+            data = yf.Ticker(ticker)
+            hist = data.history(period=f"{days}d")
+            if hist.empty:
+                continue
+            recs = hist[['Open','Close','High','Low','Volume']].reset_index().to_dict(orient='records')
+            result.append({
+                "stock_name": TICKER_TO_NAME.get(ticker, ticker),
+                "ticker": ticker,
+                "data": recs
+            })
+        except Exception as e:
+            continue
+    return jsonify(result)
 
 
 @app.template_filter('nl2br')
