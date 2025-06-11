@@ -5,70 +5,59 @@
 <div class="mt-5 p-4 bg-light rounded shadow-sm">
     <h2 class="mb-4">게시글별 감성 분석 결과</h2>
 
-    <!-- 감성 라벨 개수 차트 -->
-    <canvas id="sentimentChart" width="400" height="200"></canvas>
+    {% if results %}
 
-    {% if post_sentiments %}
-    <table class="table table-bordered table-hover mt-4">
-        <thead class="table-secondary">
+    <!-- 🔼 감성 분포 차트 먼저 -->
+    <div class="mb-5">
+        <h5>📊 게시글 감성 분포</h5>
+        <canvas id="sentimentChart" height="100"></canvas>
+    </div>
+
+    <!-- 게시글별 예측 결과 테이블 -->
+    <table class="table table-bordered mb-5">
+        <thead>
             <tr>
+                <th>ID</th>
                 <th>제목</th>
                 <th>내용</th>
-                <th>감성 라벨</th>
-                <th>확신도</th>
+                <th>예측 결과</th>
             </tr>
         </thead>
         <tbody>
-            {% for post in post_sentiments %}
+            {% for item in results %}
             <tr>
-                <td>{{ post.title }}</td>
-                <td>{{ post.content }}</td>
-                <td>
-                    {% if post.label == '긍정' %}
-                        <span class="text-success">{{ post.label }}</span>
-                    {% elif post.label == '부정' %}
-                        <span class="text-danger">{{ post.label }}</span>
-                    {% else %}
-                        <span class="text-muted">{{ post.label }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ post.score }}</td>
+                <td>{{ item.id }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.content }}</td>
+                <td>{{ item.prediction }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- 돌아가기 버튼 -->
+    <a href="{{ url_for('stock_predict') }}" class="btn btn-secondary">돌아가기</a>
     {% else %}
-    <div class="alert alert-warning mt-4">분석된 게시글 데이터가 없습니다.</div>
+    <p>예측된 게시글이 없습니다.</p>
     {% endif %}
-
-    <button class="btn btn-outline-secondary mt-3" onclick="goBack()">← 뒤로가기</button>
-
-    <script>
-    function goBack() {
-    if (document.referrer && document.referrer.includes(window.location.hostname)) {
-        history.back();
-    } else {
-        location.href = "{{ url_for('stock_predict') }}";
-    }
-    }
-    </script>
-
 </div>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% if results %}
 <script>
     const ctx = document.getElementById('sentimentChart').getContext('2d');
     const sentimentChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['긍정', '부정'],
+            labels: ['상승', '하락'],
             datasets: [{
                 label: '게시글 수',
                 data: [{{ positive_count }}, {{ negative_count }}],
                 backgroundColor: [
-                    'rgba(75, 192, 192, 0.7)',  // 긍정 - 연한 청록색
-                    'rgba(255, 99, 132, 0.7)'   // 부정 - 연한 빨강색
+                    'rgba(75, 192, 192, 0.7)',  // 상승
+                    'rgba(255, 99, 132, 0.7)'   // 하락
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
@@ -87,4 +76,5 @@
         }
     });
 </script>
+{% endif %}
 {% endblock %}

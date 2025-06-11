@@ -1,41 +1,46 @@
 {% extends "base.html" %}
-{% block title %}주가 예측{% endblock %}
+{% block title %}게시글 기반 주가 예측{% endblock %}
 
 {% block content %}
 <div class="mt-5 p-4 bg-light rounded shadow-sm">
-    <h2 class="mb-4">📈 AI 주가 예측</h2>
+    <h2 class="mb-4">📈 오늘자 게시글 기반 AI 주가 예측</h2>
 
     <!-- 예측 실행 버튼 -->
-    <form method="post" class="mb-3">
-        <button type="submit" class="btn btn-primary">오늘 게시글 기반 예측 실행</button>
+    <form method="post" action="{{ url_for('stock_predict') }}" class="mb-3">
+        <button type="submit" class="btn btn-primary">오늘 게시글 예측 실행</button>
     </form>
 
-    <!-- 예측 결과 출력 -->
-    {% if prediction %}
-    <div class="alert alert-success mt-4">
-        <h5>🔍 분석 요약</h5>
-        <p><strong>감성 분석 결과:</strong> {{ sentiment }}
-        {% if score is not none %}
-            (점수: {{ score | round(2) }})
-        {% else %}
-            (점수 정보 없음)
-        {% endif %}
-        </p>
-        <p><strong>📊 주가 예측:</strong> {{ prediction }}</p>
-    </div>
-
-    <!-- 현재 주가 정보 출력 -->
-    {% if current_price and current_volume %}
-    <div class="alert alert-info">
-        <h6>📌 현재 SK하이닉스 주가</h6>
-        <p><strong>종가:</strong> {{ current_price | int }}원<br>
-           <strong>거래량:</strong> {{ "{:,}".format(current_volume) }}주</p>
-    </div>
-    {% endif %}
+    <!-- 예측 결과가 있을 때만 출력 -->
+    {% if results %}
+    <h5 class="mt-4">🔍 예측 결과</h5>
+    <table class="table table-striped table-bordered mt-2">
+        <thead class="thead-light">
+            <tr>
+                <th>ID</th>
+                <th>제목</th>
+                <th>내용</th>
+                <th>예측</th>
+                <th>상승 확률</th>
+                <th>하락 확률</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in results %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.content }}</td>
+                <td>{{ item.prediction }}</td>
+                <td>{{ item.up_prob }}</td>
+                <td>{{ item.down_prob }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     <!-- 자세히 보기 버튼 -->
     <form method="get" action="{{ url_for('stock_predict_detail') }}">
-        <button type="submit" class="btn btn-outline-secondary mt-2">자세히 보기</button>
+        <button type="submit" class="btn btn-outline-secondary">자세히 보기</button>
     </form>
     {% endif %}
 
